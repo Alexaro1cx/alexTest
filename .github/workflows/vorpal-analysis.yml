@@ -1,0 +1,29 @@
+  name: SAST Analysis
+
+   on:
+     pull_request:
+       types: [opened, synchronize, reopened]
+
+   jobs:
+     sast-analysis:
+       runs-on: ubuntu-latest
+
+       steps:
+       - name: Checkout code
+         uses: actions/checkout@v3
+
+       - name: List changed files
+         id: changed-files
+         run: |
+           echo "CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }})" >> $GITHUB_ENV
+
+       - name: Run SAST CLI tool
+         run: |
+           for file in $CHANGED_FILES; do
+             if [ -f "$file" ]; then
+               echo "Running SAST tool on $file:"
+               ./sast-cli "$file"
+             else
+               echo "File $file does not exist. Skipping..."
+             fi
+           done
